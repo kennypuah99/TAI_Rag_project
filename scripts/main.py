@@ -1,3 +1,4 @@
+pip install llama-index llama-index-llms-openai
 import pdb
 
 import gradio as gr
