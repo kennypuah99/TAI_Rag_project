@@ -1,104 +1,89 @@
-# AI Tutor App Data Workflows
+---
+title: AI Tutor Chatbot
+emoji: 🧑🏻‍🏫
+colorFrom: gray
+colorTo: pink
+sdk: gradio
+sdk_version: 5.20.1
+app_file: scripts/main.py
+pinned: false
+---
+### Gradio UI Chatbot
 
-This directory contains scripts for managing the AI Tutor App's data pipeline.
+A Gradio UI for the chatbot is available in [scripts/main.py](./scripts/main.py).
 
-## Workflow Scripts
+The Gradio demo is deployed on Hugging Face Spaces at: [AI Tutor Chatbot on Hugging Face](https://huggingface.co/spaces/towardsai-tutors/ai-tutor-chatbot).
 
-### 1. Adding a New Course
+**Note:** A GitHub Action automatically deploys the Gradio demo when changes are pushed to the main branch (excluding documentation and scripts in the `data/scraping_scripts` directory).
 
-To add a new course to the AI Tutor:
+### Installation (for Gradio UI)
 
-```bash
-python add_course_workflow.py --course [COURSE_NAME]
-```
+1. **Create a new Python environment:**
 
-This will guide you through the complete process:
+   ```bash
+   python -m venv .venv
+   ```
 
-1. Process markdown files from Notion exports
-2. Prompt you to manually add URLs to the course content
-3. Merge the course data into the main dataset
-4. Add contextual information to document nodes
-5. Create vector stores
-6. Upload databases to HuggingFace
-7. Update UI configuration
+2. **Activate the environment:**
 
-**Requirements before running:**
+   For macOS and Linux:
 
-- The course name must be properly configured in `process_md_files.py` under `SOURCE_CONFIGS`
-- Course markdown files must be placed in the directory specified in the configuration
-- You must have access to the live course platform to add URLs
+   ```bash
+   source .venv/bin/activate
+   ```
 
-### 2. Updating Documentation via GitHub API
+   For Windows:
 
-To update library documentation from GitHub repositories:
+   ```bash
+   .venv\Scripts\activate
+   ```
 
-```bash
-python update_docs_workflow.py
-```
+3. **Install the dependencies:**
 
-This will update all supported documentation sources. You can also specify specific sources:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-python update_docs_workflow.py --sources transformers peft
-```
+### Usage (for Gradio UI)
 
-The workflow includes:
+1. **Set environment variables:**
 
-1. Downloading documentation from GitHub using the API
-2. Processing markdown files to create JSONL data
-3. Adding contextual information to document nodes
-4. Creating vector stores
-5. Uploading databases to HuggingFace
+   Before running the application, set up the required API keys:
 
-### 3. Uploading JSONL to HuggingFace
+   For macOS and Linux:
 
-To upload the main JSONL file to a private HuggingFace repository:
+   ```bash
+   export OPENAI_API_KEY=your_openai_api_key_here
+   export COHERE_API_KEY=your_cohere_api_key_here
+   ```
 
-```bash
-python upload_jsonl_to_hf.py
-```
+   For Windows:
 
-This is useful for sharing the latest data with team members.
+   ```bash
+   set OPENAI_API_KEY=your_openai_api_key_here
+   set COHERE_API_KEY=your_cohere_api_key_here
+   ```
 
-## Individual Components
+2. **Run the application:**
 
-If you need to run specific steps individually:
+   ```bash
+   python scripts/main.py
+   ```
 
-- **GitHub to Markdown**: `github_to_markdown_ai_docs.py`
-- **Process Markdown**: `process_md_files.py`
-- **Add Context**: `add_context_to_nodes.py` 
-- **Create Vector Stores**: `create_vector_stores.py`
-- **Upload to HuggingFace**: `upload_dbs_to_hf.py`
+   This command starts the Gradio interface for the AI Tutor chatbot.
 
-## Tips for New Team Members
+### Updating Data Sources
 
-1. To update the AI Tutor with new content:
-   - For new courses, use `add_course_workflow.py`
-   - For updated documentation, use `update_docs_workflow.py`
+This application uses a RAG (Retrieval Augmented Generation) system with multiple data sources, including documentation and courses. To update these sources:
 
-2. When adding URLs to course content:
-   - Get the URLs from the live course platform
-   - Add them to the generated JSONL file in the `url` field
-   - Example URL format: `https://academy.towardsai.net/courses/take/python-for-genai/multimedia/62515980-course-structure`
-   - Make sure every document has a valid URL
+1. **For adding new courses or updating documentation:**
+   - See the detailed instructions in [data/scraping_scripts/README.md](./data/scraping_scripts/README.md)
+   - Automated workflows are available for both course addition and documentation updates
+   
+2. **Available workflows:**
+   - `add_course_workflow.py` - For adding new course content
+   - `update_docs_workflow.py` - For updating documentation from GitHub repositories
+   - `upload_data_to_hf.py` - For uploading data files to HuggingFace
 
-3. By default, only new content will have context added to save time and resources. Use `--process-all-context` only if you need to regenerate context for all documents. Use `--skip-data-upload` if you don't want to upload data files to the private HuggingFace repo (they're uploaded by default).
+These scripts streamline the process of adding new content to the AI Tutor and ensure consistency across team members.
 
-4. When adding a new course, verify that it appears in the Gradio UI:
-   - The workflow automatically updates `main.py` and `setup.py` to include the new source
-   - Check that the new source appears in the dropdown menu in the UI
-   - Make sure it's properly included in the default selected sources
-   - Restart the Gradio app to see the changes
-
-5. First time setup or missing files:
-   - Both workflows automatically check for and download required data files:
-     - `all_sources_data.jsonl` - Contains the raw document data
-     - `all_sources_contextual_nodes.pkl` - Contains the processed nodes with added context
-   - If the PKL file exists, the `--new-context-only` flag will only process new content
-   - You must have proper HuggingFace credentials with access to the private repository
-
-6. Make sure you have the required environment variables set:
-   - `OPENAI_API_KEY` for LLM processing
-   - `COHERE_API_KEY` for embeddings
-   - `HF_TOKEN` for HuggingFace uploads
-   - `GITHUB_TOKEN` for accessing documentation via the GitHub API
